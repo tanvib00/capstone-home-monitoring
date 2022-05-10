@@ -142,7 +142,7 @@ CONFIG_PARTITION_TABLE_MD5=y
 #
 # Example Configuration
 #
-CONFIG_BROKER_URL="mqtt://192.168.3.191"
+CONFIG_BROKER_URL="mqtt://192.168.90.191"
 # end of Example Configuration
 
 #

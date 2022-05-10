@@ -8,9 +8,11 @@
 */
 
 #include <stdio.h>
+//#include <string.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+#include <tcpip_adapter.h>
 #include "esp_wifi.h"
 #include "esp_system.h"
 #include "nvs_flash.h"
@@ -104,6 +106,35 @@ static void mqtt_app_start(void)
 {   
     int raw_val;
 
+    /*tcpip_adapter_ip_info_t ipInfo; 
+    tcpip_adapter_get_ip_info(TCPIP_ADAPTER_IF_STA, &ipInfo);
+    char str[50];
+    int a,b,c,d;
+    snprintf(IP2STR(&ipInfo.ip), "%d,%d,%d,%d", &a,&b,&c,&d);
+    snprintf(str, "mqtt://%d.%d.%d.%d", a,b,c,d);
+    printf("My IP: " IPSTR "\n", IP2STR(&ipInfo.ip));
+    printf("new ip: %s\n", str);
+    printf("hello!!!!\n");*/
+    /*//sprintf(str, "%x", ipInfo.ip.addr);
+    // 198.162.65.191
+    //char ip = IP2STR(&ipInfo.ip);
+    //int len = strlen(ip);
+    //printf("len %d\n", len);
+    int octet = 0;
+    int c;
+    for (c=0; c<len; ++c) {
+        if (ip[c] == '.') {
+            octet++;
+            if (octet == 3) break;
+        }
+    }
+    // c is length of str up to last octet
+    char str[c+1];
+    memcpy(str, ip, c);
+    d = 191; // hardcoded
+    //strcat(str, raspberry_ip);
+    //memcpy(&str[c+1], raspberry_ip, 3);*/
+
     esp_mqtt_client_config_t mqtt_cfg = {
         .uri = CONFIG_BROKER_URL,
     };
@@ -142,9 +173,16 @@ static void mqtt_app_start(void)
 
     for(;;) {    
         // Send raw ADC data every 2 seconds
-        raw_val = adc1_get_raw(ADC1_CHANNEL_3); // TODO change pin val here
-        sprintf(payload, "Temperature: %d", raw_val);
-        esp_mqtt_client_publish(client, "esp32_tempval", payload, strlen(payload), 0, false);
+        raw_val = adc1_get_raw(ADC1_CHANNEL_1); // TODO change pin val here for temp: channel 1
+        sprintf(payload, "Power: %d", raw_val);
+        esp_mqtt_client_publish(client, "esp32_powerstate", payload, strlen(payload), 0, false);
+        
+        /*raw_val = adc1_get_raw(ADC1_CHANNEL_1);
+        float processed = (float) raw_val * 0.145 + 32.0; // to ºF
+        printf("val: %d, raw: %d\n", (int) processed, raw_val);
+        sprintf(payload, "Temperature: %d", (int) processed);
+        //printf("payload: %s\n", payload);
+        esp_mqtt_client_publish(client, "esp32_tempval", payload, strlen(payload), 0, false);*/
 
         vTaskDelay(pdMS_TO_TICKS(60000));
     }
@@ -178,7 +216,7 @@ void app_main(void)
 
     // Setup ADC Channel
     adc1_config_width(ADC_WIDTH_BIT_12);
-    adc1_config_channel_atten(ADC1_CHANNEL_3, ADC_ATTEN_DB_11); // TODO change pin val here
+    adc1_config_channel_atten(ADC1_CHANNEL_1, ADC_ATTEN_DB_11); // TODO change pin val here temp: channel 3
 
     mqtt_app_start();
 }
